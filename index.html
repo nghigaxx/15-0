@@ -1254,10 +1254,15 @@ function simulate() {
 
   const total = (gkScore * 0.15 + defScore * 0.27 + midScore * 0.3 + fwdScore * 0.28);
 
-  const eliteBonus  = squadArr.filter(p => p.r >= 93).length * 0.75;
-  const weakPenalty = squadArr.filter(p => p.r <  83).length * 0.35;
-  const baseWins    = Math.round((total - 82.8) * 1.35);
-  const wins        = Math.min(15, Math.max(0, Math.round(baseWins + eliteBonus - weakPenalty)));
+  const diff = Math.max(0, 94.0 - total);
+  
+  const wins = Math.min(
+      15,
+      Math.max(
+          0,
+          Math.round(15 - Math.pow(diff * 1.15, 1.35))
+      )
+  );
   const losses = 15 - wins;
 
   let tier, tierColor;
