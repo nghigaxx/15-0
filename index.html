@@ -1254,7 +1254,17 @@ function simulate() {
 
   const total = (gkScore * 0.15 + defScore * 0.27 + midScore * 0.3 + fwdScore * 0.28);
 
-  const wins = Math.min(15, Math.round((total - 60) * 15 / 34.7));
+  const lowerWins = Math.min(10, Math.round((total - 65) * 10 / 25));
+
+  let upperWins = 0;
+  if (total > 94.5)       upperWins = 5;
+  else if (total > 93.5)  upperWins = 4; 
+  else if (total > 92.5)  upperWins = 3;
+  else if (total > 91.5)  upperWins = 2;
+  else if (total > 90)    upperWins = 1;
+  else if (total > 88)    upperWins = 0;
+  
+  const wins = Math.min(15, lowerWins + upperWins);
   const losses = 15 - wins;
 
   let tier, tierColor;
