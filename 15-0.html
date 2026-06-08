@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15–0 | Champions League Draft</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0c;
+    --dark: #111116;
+    --panel: #16161e;
+    --border: #2a2a38;
+    --accent: #c8a84b;
+    --accent2: #3d6fff;
+    --white: #f0ede6;
+    --muted: #6b6b82;
+    --danger: #e05252;
+    --success: #52c87a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(200,168,75,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(61,111,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 18vw, 9rem);
+    line-height: 0.85;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, var(--accent) 0%, #f0d070 40%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-sub {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 0.5rem;
+  }
+
+  /* Instruction */
+  .instruction {
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+  .instruction strong { color: var(--accent); font-weight: 500; }
+
+  /* Spin section */
+  .spin-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .spin-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .spin-slot {
+    background: var(--black);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .spin-slot.active { border-color: var(--accent); }
+
+  .spin-slot-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .spin-slot-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    line-height: 1.2;
+    transition: all 0.1s;
+  }
+
+  .spin-slot-value.rolling {
+    animation: rollText 0.08s infinite;
+  }
+
+  @keyframes rollText {
+    0% { opacity: 1; transform: translateY(0); }
+    50% { opacity: 0.3; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .spin-slot-sub {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  .btn-spin {
+    width: 100%;
+    background: var(--accent);
+    color: var(--black);
+    border: none;
+    border-radius: 2px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
+    padding: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn-spin:hover { background: #debb60; }
+  .btn-spin:active { transform: scale(0.98); }
+  .btn-spin:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+  /* Positions grid */
+  .positions-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .positions-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Pitch layout */
+  .pitch {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .pitch-row {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .pitch-row.row-fwd   { justify-content: space-between; }
+  .pitch-row.row-mid   { justify-content: space-around; }
+  .pitch-row.row-cdm   { justify-content: center; }
+  .pitch-row.row-def   { justify-content: space-between; }
+  .pitch-row.row-gk    { justify-content: center; }
+
+  .pos-slot {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.6rem 0.5rem;
+    text-align: center;
+    width: calc(33% - 0.35rem);
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    cursor: default;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .pos-slot.gk {
+    width: 100%;
+  }
+
+  .pos-slot.filled {
+    border-color: var(--accent);
+    background: rgba(200,168,75,0.05);
+  }
+
+  .pos-badge {
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .pos-player {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    line-height: 1.15;
+  }
+
+  .pos-detail {
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .pos-empty {
+    font-size: 1.5rem;
+    color: var(--border);
+  }
+
+  /* Simulate button */
+  .btn-simulate {
+    width: 100%;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 2px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
+    padding: 0.8rem;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s;
+  }
+  .btn-simulate:hover { background: rgba(200,168,75,0.1); }
+  .btn-simulate:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* Result */
+  .result-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    display: none;
+  }
+
+  .result-panel.show { display: block; }
+
+  .result-record {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.5rem, 12vw, 6rem);
+    line-height: 1;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-record.perfect { color: var(--accent); }
+  .result-record.great { color: var(--success); }
+  .result-record.good { color: var(--white); }
+  .result-record.bad { color: var(--danger); }
+
+  .result-tier {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .result-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .result-bars {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .stat-bar-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .stat-bar-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--white);
+  }
+
+  .stat-bar-track {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .stat-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .btn-reset {
+    background: var(--dark);
+    color: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+    padding: 0.7rem 2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Phase display during spin */
+  .phase-indicator {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-align: center;
+    min-height: 1.2em;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Player list */
+  .player-list {
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+
+  .player-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(42,42,56,0.5);
+    gap: 1rem;
+  }
+
+  .player-row:last-child { border-bottom: none; }
+
+  .player-pos-tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    background: var(--border);
+    padding: 0.15rem 0.4rem;
+    border-radius: 1px;
+    color: var(--muted);
+    white-space: nowrap;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .player-name-full {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .player-club-era {
+    font-size: 0.7rem;
+    color: var(--muted);
+    white-space: nowrap;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .footnote {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 2rem;
+    line-height: 1.7;
+  }
+
+  .pitch-row.row-def .pos-slot {
+    width: calc(25% - 0.4rem);
+  }
+
+  @media (max-width: 480px) {
+    .pos-slot { min-height: 60px; padding: 0.4rem 0.3rem; }
+    .pos-player { font-size: 0.8rem; }
+    .result-bars { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo-text">15–0</div>
+    <div class="logo-sub">UEFA Champions League Draft Simulator</div>
+  </header>
+
+  <p class="instruction">
+    Draft <strong>11 players</strong> for a <strong>4-3-3</strong> (GK · RB CB CB LB · CDM CM CAM · LW ST RW).<br>
+    Spin to get a <strong>League → Club → Era</strong>. Pick any player from that squad, then place them in a valid position.<br>
+    Players are locked to their real-life positions. Can you go <strong>15–0</strong>?
+  </p>
+
+  <!-- Spin section -->
+  <div class="spin-section">
+    <div class="phase-indicator" id="phaseIndicator">Ready to draft — spin to begin</div>
+
+    <div class="spin-row">
+      <div class="spin-slot" id="slotLeague">
+        <div class="spin-slot-label">League</div>
+        <div class="spin-slot-value" id="slotLeagueVal">—</div>
+      </div>
+      <div class="spin-slot" id="slotClub">
+        <div class="spin-slot-label">Club</div>
+        <div class="spin-slot-value" id="slotClubVal">—</div>
+        <div class="spin-slot-sub" id="slotClubSub"></div>
+      </div>
+      <div class="spin-slot" id="slotEra">
+        <div class="spin-slot-label">Era</div>
+        <div class="spin-slot-value" id="slotEraVal">—</div>
+        <div class="spin-slot-sub" id="slotEraSub"></div>
+      </div>
+    </div>
+
+    <!-- Current position to fill -->
+    <div id="currentPickWrap" style="margin-bottom:1rem; display:none;">
+      <div style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">Pick for position</div>
+      <div id="pickOptions" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+    </div>
+
+    <button class="btn-spin" id="btnSpin" onclick="doSpin()">SPIN</button>
+  </div>
+
+  <!-- Formation -->
+  <div class="positions-label">Your XI</div>
+
+  <div class="pitch" id="posGrid">
+    <!-- FWD row -->
+    <div class="pitch-row row-fwd">
+      <div class="pos-slot" id="pos-LW"><div class="pos-badge">LW</div><div class="pos-empty">+</div></div>
+      <div class="pos-slot" id="pos-ST"><div class="pos-badge">ST</div><div class="pos-empty">+</div></div>
+      <div class="pos-slot" id="pos-RW"><div class="pos-badge">RW</div><div class="pos-empty">+</div></div>
+    </div>
+    <!-- CAM/CM row -->
+    <div class="pitch-row row-mid">
+      <div class="pos-slot" id="pos-CAM"><div class="pos-badge">CAM</div><div class="pos-empty">+</div></div>
+      <div class="pos-slot" id="pos-CM"><div class="pos-badge">CM</div><div class="pos-empty">+</div></div>
+    </div>
+    <!-- CDM row -->
+    <div class="pitch-row row-cdm">
+      <div class="pos-slot" id="pos-CDM"><div class="pos-badge">CDM</div><div class="pos-empty">+</div></div>
+    </div>
+    <!-- DEF row -->
+    <div class="pitch-row row-def">
+      <div class="pos-slot" id="pos-LB"><div class="pos-badge">LB</div><div class="pos-empty">+</div></div>
+      <div class="pos-slot" id="pos-CB1"><div class="pos-badge">CB</div><div class="pos-empty">+</div></div>
+      <div class="pos-slot" id="pos-CB2"><div class="pos-badge">CB</div><div class="pos-empty">+</div></div>
+      <div class="pos-slot" id="pos-RB"><div class="pos-badge">RB</div><div class="pos-empty">+</div></div>
+    </div>
+    <!-- GK -->
+    <div class="pitch-row row-gk">
+      <div class="pos-slot gk" id="pos-GK">
+        <div class="pos-badge">GK</div>
+        <div class="pos-empty">+</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-simulate" id="btnSimulate" disabled onclick="simulate()">SIMULATE CAMPAIGN</button>
+
+  <!-- Result -->
+  <div class="result-panel" id="resultPanel">
+    <div class="result-record" id="resultRecord"></div>
+    <div class="result-tier" id="resultTier"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-bars" id="resultBars"></div>
+    <div class="player-list" id="resultPlayerList"></div>
+    <br>
+    <button class="btn-reset" onclick="reset()">BUILD ANOTHER</button>
+  </div>
+
+  <p class="footnote">
+    Covers all 24 clubs to have won the European Cup / Champions League (1956–2026).<br>
+    ROW = Rest of World (winners outside top 5 leagues). Only eras where the club reached the QF or beyond are available.<br>
+    Inspired by 82-0.com
+  </p>
+
+</div>
+
+<script>
+// ============================================================
+// DATA — Clubs, eras, representative players
+// Format: { club, league, eras: [{ decade, players: [{name, pos, rating}] }] }
+// Positions: GK, DEF, MID, FWD
+// ============================================================
+
+const LEAGUES = {
+  PL:   { name: 'Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿', short: 'PL' },
+  LL:   { name: 'La Liga 🇪🇸',              short: 'La Liga' },
+  BL:   { name: 'Bundesliga 🇩🇪',           short: 'Bundesliga' },
+  SA:   { name: 'Serie A 🇮🇹',              short: 'Serie A' },
+  L1:   { name: 'Ligue 1 🇫🇷',             short: 'Ligue 1' },
+  ROW:  { name: 'Rest of World 🌍',          short: 'ROW' },
+};
+
+const DB = [
+  // ===== LA LIGA =====
+  {
+    club: 'Real Madrid', league: 'LL',
+    eras: [
+      { decade: '1950s–60s', label: 'Di Stéfano Era', rating: 98, players: [
+        {name:'Domínguez',pos:['GK'],r:83},{name:'Marquitos',pos:['CB'],r:83},{name:'Santamaría',pos:['CB'],r:85},
+        {name:'Pachín',pos:['RB'],r:81},{name:'Lesmes',pos:['LB'],r:81},{name:'Zárraga',pos:['CDM'],r:84},
+        {name:'Muñoz',pos:['CM'],r:84},{name:'Rial',pos:['CAM'],r:84},{name:'Di Stéfano',pos:['ST','CAM'],r:98},
+        {name:'Gento',pos:['LW'],r:92},{name:'Puskás',pos:['ST','LW'],r:97},
+      ]},
+      { decade: '1980s', label: 'La Quinta del Buitre', rating: 84, players: [
+        {name:'Buyo',pos:['GK'],r:82},{name:'Chendo',pos:['RB'],r:80},{name:'Hierro',pos:['CB'],r:86},
+        {name:'Sanchís',pos:['CB'],r:82},{name:'Míchel',pos:['CM','CAM'],r:84},{name:'Martín Vázquez',pos:['CM'],r:83},
+        {name:'Butragueño',pos:['ST','RW'],r:88},{name:'Hugo Sánchez',pos:['ST'],r:89},
+        {name:'Gallego',pos:['CDM'],r:82},{name:'Gordillo',pos:['LB','LW'],r:83},
+      ]},
+      { decade: '1990s–00s', label: 'Galácticos I', rating: 93, players: [
+        {name:'Casillas',pos:['GK'],r:94},{name:'Roberto Carlos',pos:['LB'],r:92},{name:'Hierro',pos:['CB'],r:89},
+        {name:'Helguera',pos:['CB','CDM'],r:82},{name:'Figo',pos:['RW'],r:92},{name:'Zidane',pos:['CAM','CM'],r:98},
+        {name:'Seedorf',pos:['CM'],r:88},{name:'Raúl',pos:['ST','RW'],r:91},{name:'Ronaldo',pos:['ST'],r:96},
+        {name:'Morientes',pos:['ST'],r:85},{name:'McManaman',pos:['CM','RW'],r:80},
+        {name:'Makelele',pos:['CDM'],r:90},{name:'Salgado',pos:['RB'],r:81},
+      ]},
+      { decade: '2010s', label: 'BBC Era', rating: 96, players: [
+        {name:'Casillas',pos:['GK'],r:94},{name:'Carvajal',pos:['RB'],r:88},{name:'Ramos',pos:['CB'],r:93},
+        {name:'Pepe',pos:['CB'],r:89},{name:'Marcelo',pos:['LB'],r:90},{name:'Modric',pos:['CM','CDM'],r:95},
+        {name:'Kroos',pos:['CM','CDM'],r:94},{name:'Casemiro',pos:['CDM'],r:90},{name:'Bale',pos:['RW','ST'],r:91},
+        {name:'Benzema',pos:['ST'],r:92},{name:'Ronaldo',pos:['LW','ST'],r:99},
+        {name:'Isco',pos:['CAM','CM'],r:86},{name:'Varane',pos:['CB'],r:90},
+      ]},
+      { decade: '2020s', label: 'New Era', rating: 92, players: [
+        {name:'Courtois',pos:['GK'],r:95},{name:'Carvajal',pos:['RB'],r:85},{name:'Alaba',pos:['CB','LB'],r:88},
+        {name:'Rüdiger',pos:['CB'],r:88},{name:'Mendy',pos:['LB'],r:84},{name:'Modrić',pos:['CM'],r:90},
+        {name:'Kroos',pos:['CM','CDM'],r:90},{name:'Valverde',pos:['CM','CDM'],r:88},{name:'Bellingham',pos:['CAM','CM'],r:90},
+        {name:'Vinicius Jr',pos:['LW'],r:93},{name:'Benzema',pos:['ST'],r:95},
+        {name:'Tchouaméni',pos:['CDM'],r:86},{name:'Rodrygo',pos:['RW','ST'],r:87},
+      ]},
+    ]
+  },
+  {
+    club: 'Barcelona', league: 'LL',
+    eras: [
+      { decade: '1990s', label: 'Dream Team', rating: 92, players: [
+        {name:'Zubizarreta',pos:['GK'],r:88},{name:'Ferrer',pos:['RB'],r:82},{name:'Koeman',pos:['CB'],r:89},
+        {name:'Nadal',pos:['CB'],r:83},{name:'Sergi',pos:['LB'],r:81},
+        {name:'Guardiola',pos:['CDM','CM'],r:89},{name:'Eusebio',pos:['CM'],r:84},
+        {name:'Laudrup',pos:['CAM','RW'],r:92},{name:'Amor',pos:['CM'],r:85},
+        {name:'Stoičkov',pos:['LW','ST'],r:93},{name:'Romário',pos:['ST'],r:95},
+      ]},
+      { decade: '2000s–10s', label: 'Pep\'s Tiki-Taka', rating: 99, players: [
+        {name:'Valdés',pos:['GK'],r:88},{name:'Alves',pos:['RB'],r:92},{name:'Piqué',pos:['CB'],r:90},
+        {name:'Puyol',pos:['CB'],r:90},{name:'Abidal',pos:['LB'],r:85},{name:'Xavi',pos:['CM','CDM'],r:97},
+        {name:'Iniesta',pos:['CAM','CM'],r:96},{name:'Busquets',pos:['CDM'],r:93},{name:'Messi',pos:['RW','ST','CAM'],r:100},
+        {name:'Villa',pos:['ST','LW'],r:89},{name:'Pedro',pos:['RW','LW'],r:85},
+        {name:'Keita',pos:['CM'],r:82},{name:'Maxwell',pos:['LB'],r:81},
+      ]},
+      { decade: '2010s', label: 'MSN Era', rating: 97, players: [
+        {name:'Ter Stegen',pos:['GK'],r:90},{name:'Alves',pos:['RB'],r:90},{name:'Piqué',pos:['CB'],r:89},
+        {name:'Mascherano',pos:['CB','CDM'],r:84},{name:'Alba',pos:['LB'],r:87},{name:'Xavi',pos:['CM','CDM'],r:95},
+        {name:'Iniesta',pos:['CAM','CM'],r:94},{name:'Busquets',pos:['CDM'],r:92},{name:'Messi',pos:['RW','CAM'],r:100},
+        {name:'Suárez',pos:['ST'],r:94},{name:'Neymar',pos:['LW'],r:94},
+        {name:'Rakitić',pos:['CM'],r:87},{name:'Roberto',pos:['RB','CM'],r:82},
+      ]},
+    ]
+  },
+  // ===== PREMIER LEAGUE =====
+  {
+    club: 'Liverpool', league: 'PL',
+    eras: [
+      { decade: '1970s–80s', label: 'Paisley Dynasty', rating: 93, players: [
+        {name:'Clemence',pos:['GK'],r:90},{name:'Neal',pos:['RB'],r:82},{name:'Thompson',pos:['CB'],r:83},
+        {name:'Hansen',pos:['CB'],r:88},{name:'Kennedy',pos:['LB'],r:80},{name:'Souness',pos:['CM','CDM'],r:91},
+        {name:'McDermott',pos:['CM'],r:83},{name:'Case',pos:['CM'],r:82},
+        {name:'Dalglish',pos:['ST','CAM'],r:96},{name:'Rush',pos:['ST'],r:91},{name:'Heighway',pos:['LW','RW'],r:84},
+        {name:'Callaghan',pos:['CM','RW'],r:82},{name:'Hughes',pos:['CDM'],r:82},
+      ]},
+      { decade: '2000s', label: 'Benitez European Nights', rating: 87, players: [
+        {name:'Dudek',pos:['GK'],r:84},{name:'Finnan',pos:['RB'],r:81},{name:'Carragher',pos:['CB'],r:86},
+        {name:'Hyypiä',pos:['CB'],r:85},{name:'Riise',pos:['LB'],r:82},{name:'Gerrard',pos:['CM','CAM'],r:94},
+        {name:'Alonso',pos:['CDM','CM'],r:90},{name:'Luis García',pos:['CAM','CM'],r:83},
+        {name:'Cissé',pos:['ST'],r:82},{name:'Baroš',pos:['ST'],r:81},{name:'Kewell',pos:['LW','CAM'],r:85},
+        {name:'Sissoko',pos:['CDM'],r:80},
+      ]},
+      { decade: '2010s–20s', label: 'Klopp Era', rating: 96, players: [
+        {name:'Alisson',pos:['GK'],r:94},{name:'Alexander-Arnold',pos:['RB'],r:90},{name:'Van Dijk',pos:['CB'],r:95},
+        {name:'Matip',pos:['CB'],r:84},{name:'Robertson',pos:['LB'],r:89},{name:'Fabinho',pos:['CDM'],r:87},
+        {name:'Henderson',pos:['CM','CDM'],r:83},{name:'Wijnaldum',pos:['CM'],r:85},
+        {name:'Salah',pos:['RW'],r:94},{name:'Firmino',pos:['ST','CAM'],r:87},{name:'Mané',pos:['LW','ST'],r:92},
+        {name:'Thiago',pos:['CM'],r:88},{name:'Keita',pos:['CM'],r:81},
+      ]},
+    ]
+  },
+  {
+    club: 'Manchester United', league: 'PL',
+    eras: [
+      { decade: '1990s–00s', label: 'Ferguson Dynasty', rating: 94, players: [
+        {name:'Schmeichel',pos:['GK'],r:95},{name:'G.Neville',pos:['RB'],r:86},{name:'Stam',pos:['CB'],r:91},
+        {name:'Pallister',pos:['CB'],r:84},{name:'Irwin',pos:['LB'],r:87},{name:'Keane',pos:['CM','CDM'],r:93},
+        {name:'Scholes',pos:['CM','CAM'],r:92},{name:'Beckham',pos:['CM','RW'],r:89},
+        {name:'Giggs',pos:['LW','CAM'],r:91},{name:'Cole',pos:['ST'],r:88},{name:'Yorke',pos:['ST'],r:88},
+        {name:'Sheringham',pos:['ST','CAM'],r:86},{name:'Butt',pos:['CM','CDM'],r:82},
+      ]},
+      { decade: '2000s–08', label: 'Ronaldo–Rooney Era', rating: 93, players: [
+        {name:'Van der Sar',pos:['GK'],r:91},{name:'Brown',pos:['RB'],r:81},{name:'Ferdinand',pos:['CB'],r:92},
+        {name:'Vidić',pos:['CB'],r:92},{name:'Evra',pos:['LB'],r:87},{name:'Scholes',pos:['CM'],r:90},
+        {name:'Carrick',pos:['CDM','CM'],r:87},{name:'Hargreaves',pos:['CDM','CM'],r:84},
+        {name:'Ronaldo',pos:['RW','LW'],r:97},{name:'Rooney',pos:['ST','CAM'],r:92},{name:'Tevez',pos:['ST','LW'],r:88},
+        {name:'Anderson',pos:['CM'],r:81},{name:'Nani',pos:['LW','RW'],r:84},
+      ]},
+    ]
+  },
+  {
+    club: 'Chelsea', league: 'PL',
+    eras: [
+      { decade: '2000s–10s', label: 'Abramovich Era', rating: 89, players: [
+        {name:'Čech',pos:['GK'],r:93},{name:'Ivanović',pos:['RB'],r:85},{name:'Terry',pos:['CB'],r:91},
+        {name:'Carvalho',pos:['CB'],r:87},{name:'Cole',pos:['LB'],r:90},{name:'Lampard',pos:['CM','CAM'],r:94},
+        {name:'Makelele',pos:['CDM'],r:90},{name:'Ballack',pos:['CM'],r:88},
+        {name:'Drogba',pos:['ST'],r:93},{name:'Hazard',pos:['LW','CAM'],r:92},
+        {name:'Robben',pos:['RW'],r:83},{name:'Essien',pos:['CDM','CM'],r:86},
+      ]},
+    ]
+  },
+  {
+    club: 'Manchester City', league: 'PL',
+    eras: [
+      { decade: '2020s', label: 'Treble Era', rating: 95, players: [
+        {name:'Ederson',pos:['GK'],r:91},{name:'Walker',pos:['RB'],r:88},{name:'Stones',pos:['CB'],r:86},
+        {name:'Dias',pos:['CB'],r:91},{name:'Akanji',pos:['CB'],r:84},{name:'Rodri',pos:['CDM'],r:94},
+        {name:'De Bruyne',pos:['CM','CAM'],r:96},{name:'Bernardo Silva',pos:['CM','RW'],r:90},
+        {name:'Gündogan',pos:['CM','CAM'],r:88},{name:'Grealish',pos:['LW'],r:84},{name:'Haaland',pos:['ST'],r:95},
+        {name:'Cancelo',pos:['LB','RB'],r:86},{name:'Foden',pos:['LW','CAM'],r:90},
+      ]},
+    ]
+  },
+  // ===== BUNDESLIGA =====
+  {
+    club: 'Bayern Munich', league: 'BL',
+    eras: [
+      { decade: '1970s', label: 'Beckenbauer–Müller Era', rating: 95, players: [
+        {name:'Maier',pos:['GK'],r:94},{name:'Hansen',pos:['RB'],r:80},{name:'Beckenbauer',pos:['CB'],r:98},
+        {name:'Schwarzenbeck',pos:['CB'],r:84},{name:'Breitner',pos:['LB'],r:86},{name:'Roth',pos:['CDM','CM'],r:82},
+        {name:'Zobel',pos:['CM'],r:81},{name:'Kapellmann',pos:['RW'],r:81},
+        {name:'Hoeneß',pos:['ST','RW'],r:87},{name:'G.Müller',pos:['ST'],r:97},{name:'Dürnberger',pos:['CM'],r:81},
+      ]},
+      { decade: '2010s', label: 'Guardiola–Jupp Era', rating: 97, players: [
+        {name:'Neuer',pos:['GK'],r:98},{name:'Lahm',pos:['RB','CDM'],r:93},{name:'Boateng',pos:['CB'],r:90},
+        {name:'Alaba',pos:['LB','CB'],r:89},{name:'Dante',pos:['CB'],r:84},{name:'Schweinsteiger',pos:['CM','CDM'],r:89},
+        {name:'Thiago',pos:['CM'],r:91},{name:'Müller',pos:['RW','CAM'],r:90},
+        {name:'Robben',pos:['RW'],r:91},{name:'Ribéry',pos:['LW'],r:90},{name:'Lewandowski',pos:['ST'],r:96},
+        {name:'Javi Martínez',pos:['CDM'],r:84},{name:'Götze',pos:['CAM','CM'],r:84},
+      ]},
+      { decade: '2020s', label: 'Lewandowski Peak', rating: 91, players: [
+        {name:'Neuer',pos:['GK'],r:94},{name:'Pavard',pos:['RB'],r:83},{name:'Süle',pos:['CB'],r:85},
+        {name:'Alaba',pos:['LB','CB'],r:90},{name:'Davies',pos:['LB'],r:88},{name:'Kimmich',pos:['CDM','CM','RB'],r:93},
+        {name:'Goretzka',pos:['CM'],r:87},{name:'Müller',pos:['RW','CAM'],r:87},
+        {name:'Gnabry',pos:['RW'],r:88},{name:'Coman',pos:['LW','RW'],r:86},{name:'Lewandowski',pos:['ST'],r:97},
+        {name:'Tolisso',pos:['CM'],r:81},{name:'Sané',pos:['LW','RW'],r:88},
+      ]},
+    ]
+  },
+  {
+    club: 'Borussia Dortmund', league: 'BL',
+    eras: [
+      { decade: '1990s', label: 'Hitzfeld Era', rating: 87, players: [
+        {name:'Klos',pos:['GK'],r:83},{name:'Reuter',pos:['RB'],r:84},{name:'Kohler',pos:['CB'],r:88},
+        {name:'Sammer',pos:['CB','CDM'],r:93},{name:'Freund',pos:['CDM'],r:80},
+        {name:'Zorc',pos:['CM'],r:83},{name:'Möller',pos:['CAM','CM'],r:84},
+        {name:'Chapuisat',pos:['ST'],r:85},{name:'Riedle',pos:['ST'],r:84},
+        {name:'Heinrich',pos:['LB'],r:83},{name:'Lambert',pos:['LW','RW'],r:81},
+      ]},
+      { decade: '2010s', label: 'Klopp–BVB', rating: 90, players: [
+        {name:'Weidenfeller',pos:['GK'],r:85},{name:'Piszczek',pos:['RB'],r:83},{name:'Hummels',pos:['CB'],r:91},
+        {name:'Subotic',pos:['CB'],r:84},{name:'Schmelzer',pos:['LB'],r:80},{name:'Gündogan',pos:['CM','CDM'],r:86},
+        {name:'Bender',pos:['CDM'],r:83},{name:'Götze',pos:['CAM','CM'],r:88},
+        {name:'Lewandowski',pos:['ST'],r:90},{name:'Reus',pos:['LW','CAM'],r:88},{name:'Kagawa',pos:['CAM','LW'],r:87},
+        {name:'Großkreutz',pos:['RW'],r:80},
+      ]},
+    ]
+  },
+  // ===== SERIE A =====
+  {
+    club: 'AC Milan', league: 'SA',
+    eras: [
+      { decade: '1980s–90s', label: 'Sacchi–Capello Era', rating: 97, players: [
+        {name:'G.Galli',pos:['GK'],r:87},{name:'Tassotti',pos:['RB'],r:85},{name:'Baresi',pos:['CB'],r:97},
+        {name:'Costacurta',pos:['CB'],r:91},{name:'Maldini',pos:['LB'],r:96},{name:'Ancelotti',pos:['CM','CDM'],r:86},
+        {name:'Donadoni',pos:['CM'],r:87},{name:'Evani',pos:['CM','RW'],r:85},
+        {name:'Van Basten',pos:['ST'],r:98},{name:'Gullit',pos:['ST','CM','RW'],r:96},{name:'Savicevic',pos:['LW','ST','CAM'],r:91},
+        {name:'Albertini',pos:['CM'],r:87},{name:'Desailly',pos:['CDM','CB'],r:88},{name:'Rijkaard',pos:['CDM','CB'],r:93},
+      ]},
+      { decade: '2000s', label: 'Shevchenko Era', rating: 91, players: [
+        {name:'Dida',pos:['GK'],r:86},{name:'Cafu',pos:['RB'],r:89},{name:'Nesta',pos:['CB'],r:95},
+        {name:'Stam',pos:['CB'],r:89},{name:'Maldini',pos:['LB','CB'],r:94},{name:'Seedorf',pos:['CM','CAM'],r:89},
+        {name:'Pirlo',pos:['CDM'],r:94},{name:'Gattuso',pos:['CDM','CM'],r:83},
+        {name:'Inzaghi',pos:['ST'],r:84},{name:'Shevchenko',pos:['ST'],r:94},{name:'Kaká',pos:['CAM','RW'],r:95},
+        {name:'Rui Costa',pos:['CAM'],r:88},
+      ]},
+    ]
+  },
+  {
+    club: 'Inter Milan', league: 'SA',
+    eras: [
+      { decade: '2000s–10s', label: 'Mourinho Treble', rating: 94, players: [
+        {name:'Júlio César',pos:['GK'],r:89},{name:'Maicon',pos:['RB'],r:91},{name:'Lucio',pos:['CB'],r:89},
+        {name:'Samuel',pos:['CB'],r:86},{name:'Zanetti',pos:['RB','CDM'],r:89},{name:'Cambiasso',pos:['CDM','CM'],r:88},
+        {name:'Sneijder',pos:['CAM','CM'],r:93},{name:'Motta',pos:['CM','CDM'],r:82},
+        {name:'Milito',pos:['ST'],r:94},{name:'Eto\'o',pos:['ST','RW'],r:91},{name:'Stankovic',pos:['CM'],r:81},
+        {name:'Pandev',pos:['LW','ST'],r:81},
+      ]},
+    ]
+  },
+  {
+    club: 'Juventus', league: 'SA',
+    eras: [
+      { decade: '1990s–00s', label: 'Lippi Dynasty', rating: 93, players: [
+        {name:'Peruzzi',pos:['GK'],r:88},{name:'Pessotto',pos:['RB'],r:81},{name:'Ferrara',pos:['CB'],r:86},
+        {name:'Montero',pos:['CB'],r:85},{name:'Iuliano',pos:['CB'],r:81},{name:'Deschamps',pos:['CDM'],r:87},
+        {name:'Conte',pos:['CM'],r:85},{name:'Zidane',pos:['CAM','CM'],r:96},
+        {name:'Del Piero',pos:['CAM','ST'],r:93},{name:'Baggio',pos:['ST','CAM'],r:95},{name:'Vialli',pos:['ST'],r:88},
+        {name:'Ravanelli',pos:['ST','RW'],r:85},{name:'Pessotto',pos:['LB'],r:81},
+      ]},
+      { decade: '2010s', label: 'Ronaldo Juve', rating: 90, players: [
+        {name:'Buffon',pos:['GK'],r:95},{name:'Lichtsteiner',pos:['RB'],r:82},{name:'Bonucci',pos:['CB'],r:88},
+        {name:'Chiellini',pos:['CB'],r:90},{name:'Sandro',pos:['LB'],r:85},{name:'Pirlo',pos:['CDM'],r:91},
+        {name:'Marchisio',pos:['CM'],r:86},{name:'Vidal',pos:['CM','CDM'],r:89},
+        {name:'Dybala',pos:['CAM','ST'],r:88},{name:'Higuaín',pos:['ST'],r:87},{name:'Ronaldo',pos:['LW','ST'],r:96},
+        {name:'Khedira',pos:['CM','CDM'],r:83},
+      ]},
+    ]
+  },
+  // ===== LIGUE 1 =====
+  {
+    club: 'Paris Saint-Germain', league: 'L1',
+    eras: [
+      { decade: '2010s', label: '2010s', rating: 93, players: [
+        {name:'Navas',pos:['GK'],r:91},{name:'Meunier',pos:['RB'],r:80},{name:'Thiago Silva',pos:['CB'],r:92},
+        {name:'Marquinhos',pos:['CB'],r:87},{name:'Bernat',pos:['LB'],r:81},{name:'Verratti',pos:['CM','CDM'],r:91},
+        {name:'Paredes',pos:['CDM','CM'],r:82},{name:'Di María',pos:['RW','CM'],r:88},
+        {name:'Cavani',pos:['ST'],r:90},{name:'Neymar',pos:['LW','CAM'],r:95},{name:'Mbappé',pos:['ST','LW'],r:94},
+        {name:'Draxler',pos:['LW','CAM'],r:81}, {name:'Rabiot',pos:['CM'],r:82}, {name:'Kurzawa',pos:['LB'],r:80}, {name:'Kimpembe',pos:['CB'],r:82},
+        {name:'Icardi',pos:['ST'],r:84}, {name:'Pastore',pos:['CAM'],r:84}, {name:'Rafinha',pos:['RB','CM'],r:82}, {name:'Gueye',pos:['CDM'],r:82},
+        {name:'Ibrahimovic',pos:['ST'],r:94},
+      ]},
+      { decade: '2020s', label: 'Back-to-back Champions', rating: 92, players: [
+        {name:'Donnarumma',pos:['GK'],r:91},{name:'Hakimi',pos:['RB'],r:90},{name:'Marquinhos',pos:['CB'],r:88},
+        {name:'Pacho',pos:['CB'],r:88},{name:'N.Mendes',pos:['LB'],r:90},{name:'Vitinha',pos:['CM'],r:89},
+        {name:'Ruiz',pos:['CM','CDM'],r:85},{name:'Zaire-Emery',pos:['CM','CDM'],r:86},
+        {name:'Dembélé',pos:['RW'],r:90},{name:'Lee Kang-in',pos:['CAM','RW'],r:84},{name:'Mbappé',pos:['ST','LW'],r:95},
+        {name:'Gonçalo Ramos',pos:['ST'],r:83}, {name: 'Neves', pos: ['CDM'], r: 88}, {name:'Kvaratskhelia',pos:['LW'],r:89}, {name:'Neymar',pos:['LW','CAM'],r:92},
+        {name: 'Messi', pos: ['RW','CAM'], r: 93},
+      ]},
+    ]
+  },
+  {
+    club: 'Marseille', league: 'L1',
+    eras: [
+      { decade: '1990s', label: 'Tapie\'s Marseille', rating: 88, players: [
+        {name:'Barthez',pos:['GK'],r:90},{name:'Angloma',pos:['RB'],r:81},{name:'Desailly',pos:['CB'],r:91},
+        {name:'Boli',pos:['CB'],r:85},{name:'Di Meco',pos:['LB'],r:81},{name:'Deschamps',pos:['CDM'],r:86},
+        {name:'Sauzée',pos:['CM'],r:83},{name:'Pelé',pos:['CM','CAM'],r:87},
+        {name:'Papin',pos:['ST'],r:89},{name:'Voeller',pos:['ST'],r:89},{name:'Boksić',pos:['ST','LW'],r:83},
+        {name:'Cantona',pos:['CAM','ST'],r:88},
+      ]},
+    ]
+  },
+  // ===== ROW =====
+  {
+    club: 'Ajax', league: 'ROW',
+    eras: [
+      { decade: '1970s–71', label: 'Total Football', rating: 97, players: [
+        {name:'Stuy',pos:['GK'],r:84},{name:'Suurbier',pos:['RB'],r:82},{name:'Hulshoff',pos:['CB'],r:83},
+        {name:'Blankenburg',pos:['CB'],r:81},{name:'Krol',pos:['LB','CB'],r:90},{name:'Haan',pos:['CDM','CM'],r:83},
+        {name:'Neeskens',pos:['CM','CDM'],r:92},{name:'Mühren',pos:['CM'],r:83},
+        {name:'Cruyff',pos:['ST','CAM'],r:99},{name:'Keizer',pos:['LW'],r:86},{name:'Swart',pos:['RW'],r:83},
+        {name:'Rep',pos:['RW','ST'],r:84},
+      ]},
+      { decade: '1990s', label: 'Van Gaal Ajax', rating: 92, players: [
+        {name:'Van der Sar',pos:['GK'],r:90},{name:'Reiziger',pos:['RB'],r:82},{name:'F.de Boer',pos:['CB'],r:88},
+        {name:'R.de Boer',pos:['CM','LW'],r:84},{name:'Blind',pos:['LB'],r:82},{name:'Seedorf',pos:['CM'],r:86},
+        {name:'Davids',pos:['CDM','CM'],r:87},{name:'Litmanen',pos:['CAM','CM'],r:88},
+        {name:'Kluivert',pos:['ST'],r:88},{name:'Overmars',pos:['LW','RW'],r:87},{name:'Finidi',pos:['RW'],r:84},
+        {name:'Scholten',pos:['CB'],r:82}, {name:'Rijkaard',pos:['CDM','CB'],r:93}
+      ]},
+    ]
+  },
+  {
+    club: 'Porto', league: 'ROW',
+    eras: [
+      { decade: '2000s', label: 'Mourinho Porto', rating: 88, players: [
+        {name:'Vítor Baía',pos:['GK'],r:87},{name:'Paulo Ferreira',pos:['RB'],r:83},{name:'Jorge Costa',pos:['CB'],r:84},
+        {name:'R.Carvalho',pos:['CB'],r:90},{name:'Nuno Valente',pos:['LB'],r:82},{name:'Costinha',pos:['CDM'],r:83},
+        {name:'Maniche',pos:['CM'],r:85},{name:'Deco',pos:['CAM','CM'],r:90},
+        {name:'Quaresma',pos:['RW'],r:85},{name:'Derlei',pos:['ST'],r:82},{name:'McCarthy',pos:['ST'],r:81},
+        {name:'Alenichev',pos:['CM'],r:80},
+      ]},
+    ]
+  },
+  {
+    club: 'Benfica', league: 'ROW',
+    eras: [
+      { decade: '1960s', label: 'Eusébio Era', rating: 94, players: [
+        {name:'Costa Pereira',pos:['GK'],r:86},{name:'Cavém',pos:['RB'],r:83},{name:'Germano',pos:['CB'],r:85},
+        {name:'Cruz',pos:['CB'],r:83},{name:'Humberto',pos:['LB'],r:81},
+        {name:'Coluna',pos:['CDM','CM'],r:90},{name:'Augusto',pos:['CM'],r:84},
+        {name:'Simões',pos:['LW'],r:85},{name:'Torres',pos:['ST'],r:83},{name:'Eusébio',pos:['ST','RW'],r:97},
+        {name:'Águas',pos:['ST'],r:84},{name:'José Augusto',pos:['RW','CAM'],r:83},
+      ]},
+    ]
+  },
+  {
+    club: 'Celtic', league: 'ROW',
+    eras: [
+      { decade: '1960s–67', label: 'Lisbon Lions', rating: 87, players: [
+        {name:'Simpson',pos:['GK'],r:84},{name:'Craig',pos:['RB'],r:82},{name:'McNeill',pos:['CB'],r:87},
+        {name:'Clark',pos:['CB'],r:83},{name:'Gemmell',pos:['LB'],r:86},{name:'Murdoch',pos:['CM'],r:86},
+        {name:'Auld',pos:['CM','CAM'],r:84},{name:'Chalmers',pos:['ST'],r:84},
+        {name:'Johnstone',pos:['RW'],r:92},{name:'Lennox',pos:['LW','ST'],r:83},{name:'Wallace',pos:['ST'],r:82},
+        {name:'McBride',pos:['ST'],r:81},
+      ]},
+    ]
+  },
+  {
+    club: 'Feyenoord', league: 'ROW',
+    eras: [
+      { decade: '1970–70', label: '1970 Champions', rating: 85, players: [
+        {name:'Pieters Graafland',pos:['GK'],r:85},{name:'Romeijn',pos:['RB'],r:82},{name:'Israël',pos:['CB'],r:85},
+        {name:'Van Duivenbode',pos:['CB'],r:83},{name:'Laseroms',pos:['LB'],r:81},{name:'Hasil',pos:['CDM'],r:82},
+        {name:'Van Hanegem',pos:['CM','CAM'],r:90},{name:'Jansen',pos:['CM'],r:85},
+        {name:'Kindvall',pos:['ST'],r:86},{name:'Moulijn',pos:['LW'],r:85},{name:'Wery',pos:['RW'],r:82},
+      ]},
+    ]
+  },
+  {
+    club: 'Nottingham Forest', league: 'PL',
+    eras: [
+      { decade: '1979–80', label: 'Clough\'s Forest', rating: 88, players: [
+        {name:'Shilton',pos:['GK'],r:93},{name:'Anderson',pos:['RB'],r:83},{name:'Burns',pos:['CB'],r:84},
+        {name:'Lloyd',pos:['CB'],r:85},{name:'Clark',pos:['LB'],r:82},{name:'McGovern',pos:['CDM'],r:83},
+        {name:'Gemmill',pos:['CM'],r:86},{name:'Robertson',pos:['LW'],r:86},
+        {name:'Francis',pos:['ST','CAM'],r:88},{name:'Woodcock',pos:['ST','LW'],r:83},{name:'Birtles',pos:['ST'],r:83},
+        {name:'O\'Neill',pos:['CM','RW'],r:82},
+      ]},
+    ]
+  },
+  {
+    club: 'Aston Villa', league: 'PL',
+    eras: [
+      { decade: '1982', label: '1982 Champions', rating: 84, players: [
+        {name:'Rimmer',pos:['GK'],r:83},{name:'Swain',pos:['RB'],r:81},{name:'McNaught',pos:['CB'],r:83},
+        {name:'Evans',pos:['CB'],r:82},{name:'Gibson',pos:['LB'],r:81},{name:'Mortimer',pos:['CDM','CM'],r:84},
+        {name:'Bremner',pos:['CM'],r:82},{name:'Shaw',pos:['CM'],r:82},
+        {name:'Withe',pos:['ST'],r:85},{name:'Cowans',pos:['CAM','CM'],r:84},{name:'Morley',pos:['LW','RW'],r:83},
+        {name:'Donovan',pos:['RW'],r:80},
+      ]},
+    ]
+  },
+  {
+    club: 'PSV Eindhoven', league: 'ROW',
+    eras: [
+      { decade: '1988', label: '1988 Champions', rating: 85, players: [
+        {name:'Van Breukelen',pos:['GK'],r:87},{name:'Gerets',pos:['RB'],r:85},{name:'Koeman',pos:['CB'],r:89},
+        {name:'Nielsen',pos:['CB'],r:83},{name:'Van Aerle',pos:['LB'],r:82},{name:'Wouters',pos:['CDM','CM'],r:85},
+        {name:'Vanenburg',pos:['CM','LW'],r:84},{name:'Muhren',pos:['CM','CAM'],r:84},
+        {name:'Kieft',pos:['ST'],r:84},{name:'Gullit',pos:['ST','CM','RW'],r:94},{name:'Lerby',pos:['CDM','CM'],r:83},
+      ]},
+    ]
+  },
+  {
+    club: 'Red Star Belgrade', league: 'ROW',
+    eras: [
+      { decade: '1991', label: '1991 Champions', rating: 88, players: [
+        {name:'Stojanović',pos:['GK'],r:85},{name:'Belodedić',pos:['CB'],r:88},{name:'Marović',pos:['CB'],r:83},
+        {name:'Spasić',pos:['RB'],r:82},{name:'Mrkela',pos:['LB'],r:82},
+        {name:'Jugović',pos:['CM'],r:87},{name:'Mihajlović',pos:['CDM','CM'],r:89},
+        {name:'Prosinečki',pos:['CAM','CM'],r:91},{name:'Savićević',pos:['CAM','LW'],r:93},
+        {name:'Pančev',pos:['ST'],r:92},{name:'Biković',pos:['ST'],r:81},{name:'Džajić',pos:['LW'],r:86},
+      ]},
+    ]
+  },
+  {
+    club: 'Steaua Bucharest', league: 'ROW',
+    eras: [
+      { decade: '1986', label: '1986 Champions', rating: 82, players: [
+        {name:'Duckadam',pos:['GK'],r:87},{name:'Iovan',pos:['RB'],r:82},{name:'Bumbescu',pos:['CB'],r:83},
+        {name:'Belodedić',pos:['CB'],r:88},{name:'Ungureanu',pos:['LB'],r:81},
+        {name:'Balaci',pos:['CM','CAM'],r:84},{name:'Bölöni',pos:['CM'],r:83},{name:'Majearu',pos:['CDM','CM'],r:82},
+        {name:'Hagi',pos:['CAM','LW'],r:91},{name:'Bălan',pos:['ST'],r:81},
+        {name:'Piturca',pos:['ST'],r:83},{name:'Minea',pos:['RW'],r:81},
+      ]},
+    ]
+  },
+  {
+    club: 'Hamburg', league: 'BL',
+    eras: [
+      { decade: '1983', label: '1983 Champions', rating: 84, players: [
+        {name:'Stein',pos:['GK'],r:86},{name:'Kaltz',pos:['RB'],r:86},{name:'Jakobs',pos:['CB'],r:84},
+        {name:'Hieronymus',pos:['CB'],r:82},{name:'Wehmeyer',pos:['LB'],r:81},{name:'Groh',pos:['CDM'],r:82},
+        {name:'Rolff',pos:['CM'],r:83},{name:'Magath',pos:['CM','CAM'],r:87},
+        {name:'Hrubesch',pos:['ST'],r:88},{name:'Milewski',pos:['ST','RW'],r:82},{name:'Hartwig',pos:['LW'],r:81},
+        {name:'Bastrup',pos:['RW'],r:80},
+      ]},
+    ]
+  },
+];
+
+// ============================================================
+// POSITIONS
+// ============================================================
+const POSITIONS = [
+  { id: 'GK',  label: 'GK',  posType: 'GK'  },
+  { id: 'RB',  label: 'RB',  posType: 'RB'  },
+  { id: 'CB1', label: 'CB',  posType: 'CB'  },
+  { id: 'CB2', label: 'CB',  posType: 'CB'  },
+  { id: 'LB',  label: 'LB',  posType: 'LB'  },
+  { id: 'CDM', label: 'CDM', posType: 'CDM' },
+  { id: 'CM',  label: 'CM',  posType: 'CM'  },
+  { id: 'CAM', label: 'CAM', posType: 'CAM' },
+  { id: 'LW',  label: 'LW',  posType: 'LW'  },
+  { id: 'ST',  label: 'ST',  posType: 'ST'  },
+  { id: 'RW',  label: 'RW',  posType: 'RW'  },
+];
+
+// Position compatibility: which SLOT posTypes a player's position can fill
+// Key = player's natural position, Value = slot posTypes they're eligible for
+const POS_COMPAT = {
+  GK:  ['GK'],
+  RB:  ['RB'],
+  LB:  ['LB'],
+  CB:  ['CB'],
+  CDM: ['CDM'],
+  CM:  ['CM'],
+  CAM: ['CAM'],
+  LW:  ['LW'],
+  RW:  ['RW'],
+  ST:  ['ST'],
+};
+
+let squad = {}; // posId -> player obj
+let pickedPlayerNames = new Set(); // prevent picking same player twice
+let currentSpin = null;
+let spinCount = 0;
+let totalRating = 0;
+
+function canFillSlot(playerPos, slotPosType) {
+  // playerPos is an array; slotPosType is a string
+  // A player can fill a slot if any of their positions map to the slot type
+  return playerPos.some(p => POS_COMPAT[p] && POS_COMPAT[p].includes(slotPosType));
+}
+
+function getEmptyPositions() {
+  return POSITIONS.filter(p => !squad[p.id]);
+}
+
+function getNextEmptyPosition() {
+  return POSITIONS.find(p => !squad[p.id]) || null;
+}
+
+function rollRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function doSpin() {
+  if (getNextEmptyPosition() === null) return;
+
+  const btn = document.getElementById('btnSpin');
+  btn.disabled = true;
+
+  // Pick any club/era — no position filtering
+  const pickedClub = rollRandom(DB);
+  const pickedEra = rollRandom(pickedClub.eras);
+  const pickedLeague = pickedClub.league;
+  const leagueName = LEAGUES[pickedLeague].short;
+
+  currentSpin = {
+    league: pickedLeague,
+    leagueName,
+    club: pickedClub.club,
+    era: pickedEra,
+  };
+
+  // Animate slots
+  animateSlots(leagueName, pickedClub.club, pickedEra.decade, pickedEra.label, () => {
+    showPickOptions(currentSpin);
+    // btn stays disabled until pickPlayer confirms a choice
+  });
+}
+
+function animateSlots(league, club, decade, label, cb) {
+  const leagues = Object.values(LEAGUES).map(l=>l.short);
+  const clubNames = DB.map(c=>c.club);
+  const eras = ['1950s','1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
+
+  const slotL = document.getElementById('slotLeagueVal');
+  const slotC = document.getElementById('slotClubVal');
+  const slotE = document.getElementById('slotEraVal');
+  const slotCsub = document.getElementById('slotClubSub');
+  const slotEsub = document.getElementById('slotEraSub');
+
+  slotL.classList.add('rolling');
+  slotC.classList.add('rolling');
+  slotE.classList.add('rolling');
+
+  let t = 0;
+  const frames = 20;
+  const interval = setInterval(() => {
+    slotL.textContent = rollRandom(leagues);
+    slotC.textContent = rollRandom(clubNames).split(' ').pop();
+    slotE.textContent = rollRandom(eras);
+    t++;
+    if (t >= frames) {
+      clearInterval(interval);
+      slotL.classList.remove('rolling');
+      slotC.classList.remove('rolling');
+      slotE.classList.remove('rolling');
+      slotL.textContent = league;
+      slotC.textContent = club;
+      slotCsub.textContent = '';
+      slotE.textContent = decade;
+      slotEsub.textContent = label;
+
+      document.getElementById('slotLeague').classList.add('active');
+      document.getElementById('slotClub').classList.add('active');
+      document.getElementById('slotEra').classList.add('active');
+
+      const emptySlots = getEmptyPositions().map(p => p.label).join(', ');
+      document.getElementById('phaseIndicator').textContent =
+        `${club} (${decade}) — Pick a player, then choose their position`;
+
+      cb();
+    }
+  }, 60);
+}
+
+function showPickOptions(spin) {
+  const wrap = document.getElementById('currentPickWrap');
+  const optDiv = document.getElementById('pickOptions');
+  wrap.style.display = 'block';
+  optDiv.innerHTML = '';
+
+  // Show ALL players from the era; grey out already-drafted ones
+  spin.era.players.forEach(player => {
+    const alreadyPicked = pickedPlayerNames.has(player.name);
+    const btn = document.createElement('button');
+    btn.style.cssText = `
+      background: var(--black);
+      border: 1px solid ${alreadyPicked ? 'var(--border)' : 'var(--border)'};
+      border-radius: 2px;
+      color: ${alreadyPicked ? 'var(--muted)' : 'var(--white)'};
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      padding: 0.4rem 0.8rem;
+      cursor: ${alreadyPicked ? 'not-allowed' : 'pointer'};
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: ${alreadyPicked ? '0.35' : '1'};
+    `;
+    const posLabel = player.pos.join('/');
+    btn.innerHTML = `<span style="font-family:'Bebas Neue';font-size:1rem;color:${alreadyPicked ? 'var(--muted)' : 'var(--accent)'}">${player.r}</span> ${player.name} <span style="font-size:0.65rem;color:var(--muted);margin-left:0.2rem">${posLabel}</span>${alreadyPicked ? ' <span style="font-size:0.6rem;color:var(--danger)">✕ drafted</span>' : ''}`;
+    if (!alreadyPicked) {
+      btn.onmouseover = () => btn.style.borderColor = 'var(--accent)';
+      btn.onmouseout = () => btn.style.borderColor = 'var(--border)';
+      btn.onclick = () => selectPlayerForPlacement(player, spin);
+    }
+    optDiv.appendChild(btn);
+  });
+}
+
+// After picking a player, show which empty slots they can fill
+function selectPlayerForPlacement(player, spin) {
+  const wrap = document.getElementById('currentPickWrap');
+  const optDiv = document.getElementById('pickOptions');
+  optDiv.innerHTML = '';
+
+  const emptySlots = getEmptyPositions();
+  const validSlots = emptySlots.filter(slot => canFillSlot(player.pos, slot.posType));
+
+  if (validSlots.length === 0) {
+    optDiv.innerHTML = `<span style="color:var(--danger);font-size:0.8rem">${player.name} can't fill any remaining position. Pick another player.</span>`;
+    // Re-show player list
+    setTimeout(() => showPickOptions(spin), 1800);
+    return;
+  }
+
+  const header = document.createElement('div');
+  header.style.cssText = 'font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;width:100%';
+  header.textContent = `Place ${player.name} (${player.pos.join('/')}, ${player.r}) in:`;
+  optDiv.appendChild(header);
+
+  validSlots.forEach(slot => {
+    const btn = document.createElement('button');
+    btn.style.cssText = `
+      background: var(--black);
+      border: 1px solid var(--accent);
+      border-radius: 2px;
+      color: var(--accent);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    `;
+    btn.textContent = slot.label;
+    btn.onmouseover = () => { btn.style.background = 'rgba(200,168,75,0.15)'; };
+    btn.onmouseout = () => { btn.style.background = 'var(--black)'; };
+    btn.onclick = () => pickPlayer(player, spin, slot);
+    optDiv.appendChild(btn);
+  });
+
+  // Back button
+  const back = document.createElement('button');
+  back.style.cssText = `
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    margin-left: 0.5rem;
+  `;
+  back.textContent = '← Back';
+  back.onclick = () => showPickOptions(spin);
+  optDiv.appendChild(back);
+}
+
+function pickPlayer(player, spin, pos) {
+  squad[pos.id] = {
+    ...player,
+    club: spin.club,
+    era: spin.era.decade,
+    posLabel: pos.label,
+    posId: pos.id,
+  };
+  pickedPlayerNames.add(player.name);
+  totalRating += player.r;
+
+  // Update grid slot
+  const slot = document.getElementById(`pos-${pos.id}`);
+  slot.classList.add('filled');
+  slot.innerHTML = `
+    <div class="pos-badge">${pos.label}</div>
+    <div class="pos-player">${player.name}</div>
+    <div class="pos-detail">${spin.club.split(' ').pop()} · ${spin.era.decade}</div>
+  `;
+
+  // Reset spin UI
+  document.getElementById('currentPickWrap').style.display = 'none';
+  document.getElementById('slotLeague').classList.remove('active');
+  document.getElementById('slotClub').classList.remove('active');
+  document.getElementById('slotEra').classList.remove('active');
+  document.getElementById('slotLeagueVal').textContent = '—';
+  document.getElementById('slotClubVal').textContent = '—';
+  document.getElementById('slotEraVal').textContent = '—';
+  document.getElementById('slotClubSub').textContent = '';
+  document.getElementById('slotEraSub').textContent = '';
+  spinCount++;
+
+  const nextPos = getNextEmptyPosition();
+  if (nextPos) {
+    document.getElementById('phaseIndicator').textContent =
+      `${Object.keys(squad).length}/11 filled — spin for next player`;
+    document.getElementById('btnSpin').disabled = false;
+  } else {
+    document.getElementById('phaseIndicator').textContent = 'Squad complete! Simulate the campaign.';
+    document.getElementById('btnSpin').disabled = true;
+    document.getElementById('btnSimulate').disabled = false;
+  }
+}
+
+function simulate() {
+  const squadArr = Object.values(squad);
+  const avgRating = squadArr.reduce((s,p)=>s+p.r,0) / squadArr.length;
+
+  const gk = squadArr.find(p=>p.posId==='GK');
+  const defs = squadArr.filter(p=>['RB','CB1','CB2','LB'].includes(p.posId));
+  const mids = squadArr.filter(p=>['CDM','CM','CAM'].includes(p.posId));
+  const fwds = squadArr.filter(p=>['LW','ST','RW'].includes(p.posId));
+
+  const gkScore = gk ? gk.r : 70;
+  const defScore = defs.length ? defs.reduce((s,p)=>s+p.r,0)/defs.length : 70;
+  const midScore = mids.length ? mids.reduce((s,p)=>s+p.r,0)/mids.length : 70;
+  const fwdScore = fwds.length ? fwds.reduce((s,p)=>s+p.r,0)/fwds.length : 70;
+
+  const total = (gkScore * 0.15 + defScore * 0.27 + midScore * 0.3 + fwdScore * 0.28);
+
+  const wins = Math.min(15, Math.round((total - 60) * 15 / 34.7));
+  const losses = 15 - wins;
+
+  let tier, tierColor;
+  if (wins === 15)       { tier = 'PERFECT — INVINCIBLE CHAMPIONS'; tierColor = 'perfect'; }
+  else if (wins >= 13)   { tier = 'LEGENDARY SEASON'; tierColor = 'great'; }
+  else if (wins >= 11)   { tier = 'CHAMPIONS'; tierColor = 'great'; }
+  else if (wins >= 9)    { tier = 'FINALIST'; tierColor = 'good'; }
+  else if (wins >= 7)    { tier = 'SEMI-FINALISTS'; tierColor = 'good'; }
+  else                   { tier = 'GROUP STAGE EXIT'; tierColor = 'bad'; }
+
+  // Render
+  const rec = document.getElementById('resultRecord');
+  rec.textContent = `${wins}–${losses}`;
+  rec.className = `result-record ${tierColor}`;
+  document.getElementById('resultTier').textContent = tier;
+  document.getElementById('resultScore').textContent =
+    `Overall Squad Rating: ${avgRating.toFixed(1)} pts · GK ${gkScore} · DEF ${defScore.toFixed(0)} · MID ${midScore.toFixed(0)} · FWD ${fwdScore.toFixed(0)}`;
+
+  // Bars
+  const bars = document.getElementById('resultBars');
+  const stats = [
+    { label: 'GK', val: gkScore, max: 100 },
+    { label: 'DEF', val: defScore, max: 100 },
+    { label: 'MID', val: midScore, max: 100 },
+    { label: 'FWD', val: fwdScore, max: 100 },
+    { label: 'OVR', val: total, max: 100 },
+  ];
+  bars.innerHTML = stats.map(s => `
+    <div class="stat-bar-wrap">
+      <div class="stat-bar-label">${s.label}</div>
+      <div class="stat-bar-val">${Math.round(s.val)}</div>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill" style="width:${Math.round((s.val/s.max)*100)}%"></div>
+      </div>
+    </div>
+  `).join('');
+
+  // Player list
+  const list = document.getElementById('resultPlayerList');
+  list.innerHTML = '<div style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;">Full XI</div>' +
+    squadArr.map(p => `
+      <div class="player-row">
+        <span class="player-pos-tag">${p.posLabel}</span>
+        <span class="player-name-full">${p.name}</span>
+        <span class="player-club-era">${p.club} · ${p.era}</span>
+        <span style="font-family:'Bebas Neue';font-size:1.1rem;color:var(--accent)">${p.r}</span>
+      </div>
+    `).join('');
+
+  document.getElementById('resultPanel').classList.add('show');
+  document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth' });
+}
+
+function reset() {
+  squad = {};
+  pickedPlayerNames = new Set();
+  currentSpin = null;
+  spinCount = 0;
+  totalRating = 0;
+
+  POSITIONS.forEach(pos => {
+    const slot = document.getElementById(`pos-${pos.id}`);
+    slot.className = `pos-slot${pos.id==='GK'?' gk':''}`;
+    slot.innerHTML = `<div class="pos-badge">${pos.label}</div><div class="pos-empty">+</div>`;
+  });
+
+  document.getElementById('slotLeagueVal').textContent = '—';
+  document.getElementById('slotClubVal').textContent = '—';
+  document.getElementById('slotEraVal').textContent = '—';
+  document.getElementById('slotClubSub').textContent = '';
+  document.getElementById('slotEraSub').textContent = '';
+  document.getElementById('slotLeague').classList.remove('active');
+  document.getElementById('slotClub').classList.remove('active');
+  document.getElementById('slotEra').classList.remove('active');
+  document.getElementById('currentPickWrap').style.display = 'none';
+  document.getElementById('phaseIndicator').textContent = 'Ready to draft — spin to begin';
+  document.getElementById('btnSpin').disabled = false;
+  document.getElementById('btnSimulate').disabled = true;
+  document.getElementById('resultPanel').classList.remove('show');
+}
+</script>
+</body>
+</html>
